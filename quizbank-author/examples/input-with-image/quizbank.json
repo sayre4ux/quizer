@@ -1,0 +1,61 @@
+{
+  "format": "quizbank",
+  "formatVersion": 1,
+  "id": "demo_img",
+  "title": "Diagram Sample",
+  "module": "DEMO",
+  "questions": [
+    {
+      "id": "q1",
+      "prompt": "In the network topology shown, which device sits at the marked point?",
+      "promptImage": "assets/diagram.png",
+      "options": [
+        { "label": "A", "text": "Router" },
+        { "label": "B", "text": "Firewall" },
+        { "label": "C", "text": "Switch" }
+      ],
+      "correct": ["B"],
+      "explanation": "The marked node filters traffic at the perimeter — it is the firewall."
+    },
+    {
+      "id": "q2",
+      "prompt": "What does TLS provide?",
+      "options": [
+        { "label": "A", "text": "Encryption in transit" },
+        { "label": "B", "text": "Disk encryption" },
+        { "label": "C", "text": "Password hashing" }
+      ],
+      "correct": ["A"]
+    },
+    {
+      "id": "q3",
+      "prompt": "Which port does HTTPS use by default?",
+      "options": [
+        { "label": "A", "text": "80" },
+        { "label": "B", "text": "443" },
+        { "label": "C", "text": "22" }
+      ],
+      "correct": ["B"]
+    },
+    {
+      "id": "q4",
+      "prompt": "A VPN primarily protects data by…",
+      "options": [
+        { "label": "A", "text": "Compressing it" },
+        { "label": "B", "text": "Tunneling it through an encrypted channel" },
+        { "label": "C", "text": "Caching it locally" }
+      ],
+      "correct": ["B"]
+    },
+    {
+      "id": "q5",
+      "prompt": "Which is a symmetric cipher?",
+      "options": [
+        { "label": "A", "text": "AES" },
+        { "label": "B", "text": "RSA" },
+        { "label": "C", "text": "ECDSA" }
+      ],
+      "correct": ["A"]
+    }
+  ]
+}

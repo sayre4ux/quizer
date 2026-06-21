@@ -1,0 +1,6 @@
+question,A,B,C,D,answer,explanation,category
+What is the capital of France?,London,Paris,Berlin,Rome,B,Paris is the capital of France.,Geography
+Which planet is known as the Red Planet?,Venus,Mars,Jupiter,Saturn,Mars,Mars appears red due to iron oxide on its surface.,Science
+How many bits are in a byte?,4,8,16,32,B,A byte is 8 bits.,Computing
+Which of these are prime numbers?,2,4,7,9,"A, C",2 and 7 are prime; 4 and 9 are not.,Math
+At sea level water boils at what temperature?,90°C,100°C,110°C,120°C,2,At standard sea-level pressure water boils at 100°C.,Science

@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Private data pipeline (scraped source, processing scripts, generated banks)
+pipeline/
+
+# Local Claude/provider settings
+.sc/
+
+# Environment
+.env
+.env.*
+*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+*~
+
+# Local session notes
+MEMORY.md
+RELEASE_PLAN.md
+CHANGES.md

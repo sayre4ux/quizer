@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "quizer",
+  "owner": {
+    "name": "sayre4ux"
+  },
+  "description": "Plugins for Quizer — the local-first exam trainer.",
+  "plugins": [
+    {
+      "name": "quizbank-author",
+      "source": "./quizbank-author",
+      "description": "Convert an existing question bank into an importable Quizer quizbank file. Conversion only — extracts answers from your source, never invents them.",
+      "category": "productivity",
+      "keywords": ["quizer", "quizbank", "question-bank", "csv", "anki", "exam"]
+    }
+  ]
+}

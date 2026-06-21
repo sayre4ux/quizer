@@ -1,0 +1,15 @@
+{
+  "name": "quizbank-author",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "Convert existing question banks into a valid Quizer quizbank file (v1).",
+  "scripts": {
+    "validate": "node scripts/validate-quizbank.mjs",
+    "pack": "node scripts/pack-quizbank.mjs"
+  },
+  "dependencies": {
+    "fflate": "^0.8.3"
+  }
+}

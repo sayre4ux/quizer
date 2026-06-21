@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0a0b" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Quizer" />
+    <title>Quizer</title>
+    <style>
+      /* Cold-start boot splash — inline so it paints before the JS bundle loads. */
+      #boot {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483000;
+        display: grid;
+        place-items: center;
+        align-content: center;
+        gap: 26px;
+        background: #0a0a0b;
+        background-image: radial-gradient(120% 90% at 50% 38%, #15161c 0%, #0a0a0b 60%);
+        transition: opacity 0.34s ease;
+        /* failsafe: if JS never dismisses (error/slow), fade out anyway */
+        animation: boot-failsafe 1ms linear 4000ms forwards;
+      }
+      #boot.boot--done {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .boot-mark {
+        position: relative;
+        width: 172px;
+        height: 172px;
+        display: grid;
+        place-items: center;
+        animation: boot-in 1000ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+      }
+      .boot-wolf {
+        width: 130px;
+        height: 130px;
+        border-radius: 28px;
+        -webkit-mask: radial-gradient(circle at 50% 50%, #000 70%, transparent 95%);
+        mask: radial-gradient(circle at 50% 50%, #000 70%, transparent 95%);
+        animation: boot-glitch 2000ms steps(1, end) both;
+      }
+      .boot-sweep {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: conic-gradient(
+          from -12deg,
+          transparent 0 8%,
+          #22d3ee 18%,
+          transparent 36%,
+          #f0655a 54%,
+          transparent 72%
+        );
+        -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2.5px));
+        mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2.5px));
+        filter: drop-shadow(0 0 6px rgba(34, 211, 238, 0.35));
+        animation: boot-sweep 2000ms cubic-bezier(0.4, 0, 0.2, 1) both;
+      }
+      .boot-tag {
+        font: 600 11px/1 ui-monospace, "SF Mono", Menlo, monospace;
+        letter-spacing: 0.36em;
+        text-indent: 0.36em;
+        text-transform: uppercase;
+        color: rgba(231, 234, 242, 0.55);
+        animation: boot-tag 800ms 600ms ease both;
+      }
+      @keyframes boot-in {
+        0% { opacity: 0; transform: scale(0.9); }
+        100% { opacity: 1; transform: scale(1); }
+      }
+      @keyframes boot-sweep {
+        0% { opacity: 0; transform: rotate(-120deg); }
+        20% { opacity: 0.95; }
+        100% { opacity: 0.5; transform: rotate(345deg); }
+      }
+      @keyframes boot-glitch {
+        0%, 100% { transform: translate(0); filter: none; }
+        7% { transform: translate(-2px, 0); filter: drop-shadow(2px 0 #22d3ee) drop-shadow(-2px 0 #f0655a); }
+        9% { transform: translate(2px, 0); }
+        11% { transform: translate(0); filter: none; }
+        62% { transform: translate(0); filter: none; }
+        64% { transform: translate(-1.5px, 0); filter: drop-shadow(1.5px 0 #22d3ee) drop-shadow(-1.5px 0 #f0655a); }
+        66% { transform: translate(1.5px, 0); }
+        68% { transform: translate(0); filter: none; }
+      }
+      @keyframes boot-tag {
+        0% { opacity: 0; transform: translateY(6px); }
+        100% { opacity: 0.55; transform: translateY(0); }
+      }
+      @keyframes boot-failsafe {
+        to { opacity: 0; visibility: hidden; pointer-events: none; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .boot-mark { animation: boot-fade 300ms ease both; }
+        .boot-wolf, .boot-sweep { animation: none; }
+        .boot-sweep { opacity: 0.45; }
+        .boot-tag { animation: boot-fade 300ms 100ms ease both; opacity: 0.55; }
+        @keyframes boot-fade { from { opacity: 0; } to { opacity: 1; } }
+      }
+    </style>
+    <script>
+      window.__bootStart = Date.now();
+    </script>
+  </head>
+  <body>
+    <div id="boot" aria-hidden="true">
+      <div class="boot-mark">
+        <div class="boot-sweep"></div>
+        <img class="boot-wolf" src="/icon-512.png" alt="" />
+      </div>
+      <div class="boot-tag">Train · Hack · Improve</div>
+    </div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

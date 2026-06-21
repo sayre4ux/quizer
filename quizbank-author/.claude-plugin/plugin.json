@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "quizbank-author",
+  "displayName": "Quizbank Author",
+  "version": "1.0.0",
+  "description": "Convert an existing question bank (CSV, Anki, docs, slides, markdown, screenshots) into a valid Quizer quizbank file you can import. Conversion only — extracts answers from your source, never invents them.",
+  "author": {
+    "name": "sayre4ux"
+  },
+  "homepage": "https://github.com/sayre4ux/quizer/tree/main/quizbank-author",
+  "repository": "https://github.com/sayre4ux/quizer",
+  "license": "MIT",
+  "keywords": ["quizer", "quizbank", "question-bank", "csv", "anki", "exam"]
+}

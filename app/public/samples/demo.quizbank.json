@@ -1,0 +1,146 @@
+{
+  "format": "quizbank",
+  "formatVersion": 1,
+  "id": "quizer_demo",
+  "title": "Quizer Demo",
+  "module": "DEMO",
+  "language": "English",
+  "description": "A small sample bank to show how Quizer works. Replace it with your own.",
+  "author": "Quizer",
+  "categories": [
+    { "id": 1, "name": "General Knowledge" },
+    { "id": 2, "name": "Science" },
+    { "id": 3, "name": "Computing" }
+  ],
+  "exam": { "count": 6, "minutes": 10 },
+  "questions": [
+    {
+      "id": "g1",
+      "category": 1,
+      "topic": "Geography",
+      "prompt": "What is the capital of Japan?",
+      "options": [
+        { "label": "A", "text": "Osaka" },
+        { "label": "B", "text": "Tokyo" },
+        { "label": "C", "text": "Kyoto" },
+        { "label": "D", "text": "Nagoya" }
+      ],
+      "correct": ["B"],
+      "explanation": "Tokyo has been Japan's capital since 1868, when the emperor moved there from Kyoto."
+    },
+    {
+      "id": "g2",
+      "category": 1,
+      "topic": "Geography",
+      "prompt": "Which of these is the longest river?",
+      "options": [
+        { "label": "A", "text": "Amazon" },
+        { "label": "B", "text": "Nile" },
+        { "label": "C", "text": "Yangtze" },
+        { "label": "D", "text": "Mississippi" }
+      ],
+      "correct": ["B"],
+      "explanation": "The Nile is generally cited as the longest river at about 6,650 km, though the Amazon is a close contender by some measures."
+    },
+    {
+      "id": "g3",
+      "category": 1,
+      "topic": "History",
+      "prompt": "In which year did the first human land on the Moon?",
+      "options": [
+        { "label": "A", "text": "1965" },
+        { "label": "B", "text": "1969" },
+        { "label": "C", "text": "1972" },
+        { "label": "D", "text": "1959" }
+      ],
+      "correct": ["B"],
+      "explanation": "Apollo 11 landed on 20 July 1969; Neil Armstrong stepped onto the surface that day."
+    },
+    {
+      "id": "s1",
+      "category": 2,
+      "topic": "Chemistry",
+      "prompt": "What is the chemical symbol for gold?",
+      "options": [
+        { "label": "A", "text": "Go" },
+        { "label": "B", "text": "Gd" },
+        { "label": "C", "text": "Au" },
+        { "label": "D", "text": "Ag" }
+      ],
+      "correct": ["C"],
+      "explanation": "Au comes from the Latin 'aurum'. Ag (argentum) is silver."
+    },
+    {
+      "id": "s2",
+      "category": 2,
+      "topic": "Physics",
+      "prompt": "Which of the following are noble gases? (Select all that apply.)",
+      "type": "multi",
+      "options": [
+        { "label": "A", "text": "Helium" },
+        { "label": "B", "text": "Oxygen" },
+        { "label": "C", "text": "Neon" },
+        { "label": "D", "text": "Argon" }
+      ],
+      "correct": ["A", "C", "D"],
+      "explanation": "Helium, neon, and argon are noble gases (group 18). Oxygen is not."
+    },
+    {
+      "id": "s3",
+      "category": 2,
+      "topic": "Biology",
+      "prompt": "What gas do plants primarily absorb for photosynthesis?",
+      "options": [
+        { "label": "A", "text": "Oxygen" },
+        { "label": "B", "text": "Nitrogen" },
+        { "label": "C", "text": "Carbon dioxide" },
+        { "label": "D", "text": "Hydrogen" }
+      ],
+      "correct": ["C"],
+      "explanation": "Plants take in CO₂ and release O₂ during photosynthesis."
+    },
+    {
+      "id": "c1",
+      "category": 3,
+      "topic": "Fundamentals",
+      "prompt": "What does 'CPU' stand for?",
+      "options": [
+        { "label": "A", "text": "Central Processing Unit" },
+        { "label": "B", "text": "Computer Personal Unit" },
+        { "label": "C", "text": "Central Process Utility" },
+        { "label": "D", "text": "Core Processing Unit" }
+      ],
+      "correct": ["A"],
+      "explanation": "The CPU is the primary component that executes instructions of a program."
+    },
+    {
+      "id": "c2",
+      "category": 3,
+      "topic": "Data",
+      "prompt": "How many bits are in a byte?",
+      "options": [
+        { "label": "A", "text": "4" },
+        { "label": "B", "text": "8" },
+        { "label": "C", "text": "16" },
+        { "label": "D", "text": "32" }
+      ],
+      "correct": ["B"],
+      "explanation": "A byte is 8 bits, able to represent 256 distinct values."
+    },
+    {
+      "id": "c3",
+      "category": 3,
+      "topic": "Web",
+      "prompt": "Which of these are programming languages? (Select all that apply.)",
+      "type": "multi",
+      "options": [
+        { "label": "A", "text": "Python" },
+        { "label": "B", "text": "HTML" },
+        { "label": "C", "text": "Rust" },
+        { "label": "D", "text": "HTTP" }
+      ],
+      "correct": ["A", "C"],
+      "explanation": "Python and Rust are programming languages. HTML is a markup language; HTTP is a protocol."
+    }
+  ]
+}

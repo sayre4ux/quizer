@@ -1,0 +1,160 @@
+@import 'tailwindcss';
+
+/* ---- palette: live CSS vars, flipped by color scheme ---- */
+:root {
+  --bg: #f3f3f4;
+  --surface: #ffffff;
+  --surface-2: #f0f0f1;
+  --fg: #16161a;
+  --muted: #6b6b75;
+  --faint: #9a9aa4;
+  --line: #e7e7ea;
+  --line-strong: #d9d9de;
+  --primary: #18181b;
+  --onprimary: #ffffff;
+  --ring: rgba(24, 24, 27, 0.32);
+  --good: #1f9d6b;
+  --bad: #d1453b;
+  --warn: #b07515;
+
+  --shadow-soft: 0 1px 2px rgba(16, 16, 24, 0.05), 0 6px 20px -10px rgba(16, 16, 24, 0.14);
+  --shadow-pop: 0 2px 6px rgba(16, 16, 24, 0.06), 0 18px 40px -16px rgba(16, 16, 24, 0.22);
+  --glass: rgba(255, 255, 255, 0.72);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0a0a0b;
+    --surface: #141416;
+    --surface-2: #1c1c1f;
+    --fg: #ededee;
+    --muted: #98989f;
+    --faint: #66666d;
+    --line: #232327;
+    --line-strong: #2e2e33;
+    --primary: #ededee;
+    --onprimary: #0a0a0b;
+    --ring: rgba(237, 237, 238, 0.4);
+    --good: #34c08a;
+    --bad: #f0655a;
+    --warn: #e0a648;
+
+    --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px -14px rgba(0, 0, 0, 0.7);
+    --shadow-pop: 0 2px 8px rgba(0, 0, 0, 0.5), 0 24px 48px -18px rgba(0, 0, 0, 0.8);
+    --glass: rgba(16, 16, 18, 0.66);
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-primary: var(--primary);
+  --color-onprimary: var(--onprimary);
+  --color-good: var(--good);
+  --color-bad: var(--bad);
+  --color-warn: var(--warn);
+
+  --font-sans: 'Geist Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --radius-xl: 1.25rem;
+  --radius-lg: 1rem;
+  --radius-md: 0.75rem;
+
+  --shadow-soft: var(--shadow-soft);
+  --shadow-pop: var(--shadow-pop);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-feature-settings: 'cv01', 'ss01';
+  letter-spacing: -0.011em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* subtle ambient depth, not a flat slab */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(120% 80% at 50% -10%, color-mix(in oklab, var(--fg) 5%, transparent), transparent 60%);
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+  letter-spacing: -0.02em;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+.cn {
+  font-family: var(--font-sans), 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  line-height: 1.85;
+  letter-spacing: 0;
+}
+
+/* consistent, accessible focus ring */
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--fg) 16%, transparent);
+}
+
+/* Prevent iOS Safari from auto-zooming (and never restoring) when focusing an
+   input whose font is < 16px. Touch devices only, so desktop sizing is unchanged. */
+@media (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}

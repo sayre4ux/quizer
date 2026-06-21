@@ -1,0 +1,32 @@
+{
+  "source": "examples/input-sample.csv",
+  "notice": "Answers were taken from the source CSV and checked only for structure — not verified for truth.",
+  "summary": { "total": 5, "ok": 5, "unresolved": 0, "duplicate": 0, "dropped": 0 },
+  "items": [
+    {
+      "id": "q1", "sourceRef": "row 2", "sourceExcerpt": "What is the capital of France?,London,Paris,...,answer=B",
+      "rawAnswer": "B", "mappedCorrect": ["B"], "chosenOptionText": "Paris",
+      "mappingNote": "exact label", "status": "ok", "reason": null
+    },
+    {
+      "id": "q2", "sourceRef": "row 3", "sourceExcerpt": "Which planet is known as the Red Planet?,...,answer=Mars",
+      "rawAnswer": "Mars", "mappedCorrect": ["B"], "chosenOptionText": "Mars",
+      "mappingNote": "exact option-text match → label B", "status": "ok", "reason": null
+    },
+    {
+      "id": "q3", "sourceRef": "row 4", "sourceExcerpt": "How many bits are in a byte?,...,answer=B",
+      "rawAnswer": "B", "mappedCorrect": ["B"], "chosenOptionText": "8",
+      "mappingNote": "exact label", "status": "ok", "reason": null
+    },
+    {
+      "id": "q4", "sourceRef": "row 5", "sourceExcerpt": "Which of these are prime numbers?,...,answer=\"A, C\"",
+      "rawAnswer": "A, C", "mappedCorrect": ["A", "C"], "chosenOptionText": "2; 7",
+      "mappingNote": "multi-answer split on ',' → labels A,C", "status": "ok", "reason": null
+    },
+    {
+      "id": "q5", "sourceRef": "row 6", "sourceExcerpt": "At sea level water boils...,90°C,100°C,...,answer=2",
+      "rawAnswer": "2", "mappedCorrect": ["B"], "chosenOptionText": "100°C",
+      "mappingNote": "positional index 2 → 2nd option (label B)", "status": "ok", "reason": null
+    }
+  ]
+}
