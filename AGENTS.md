@@ -48,6 +48,21 @@ npm test && npm run lint && npm run build
 `npm run build` runs `tsc -b`, so it is also the type-check. The project is
 `strict: true` — do not weaken compiler options to make errors go away.
 
+## CI & releases
+
+- **CI** (`.github/workflows/ci.yml`) runs on every push/PR to `main`: installs
+  both `quizbank-author/` and `app/`, then runs `npm test`, `npm run lint`, and
+  `npm run build` in `app/`. (The app's packager/parity tests shell out to the
+  authoring tool, so both packages must be installed — keep both `npm ci` steps.)
+- **Releases** (`.github/workflows/release.yml`) run on any `v*` tag: build the
+  app, run tests, zip the static PWA bundle (`quizer-<tag>-static.zip`), and
+  publish a GitHub Release with auto-generated notes + the bundle attached.
+
+To cut a release: bump `version` in `app/package.json`, commit, then
+`git tag -a vX.Y.Z -m "…" && git push origin vX.Y.Z`. The workflow does the rest.
+**Do not rewrite published history** (no squashing/force-push over a tagged or
+pushed commit) — tags must keep pointing at real commits and clones must not diverge.
+
 ## Conventions
 
 - **TypeScript strict.** No `any`, no `@ts-ignore`. Fix types properly.
@@ -81,6 +96,9 @@ quizbank-author/
   scripts/             validate + pack CLIs
   references/          format spec + conversion recipes (also agent-facing)
   SKILL.md             agent instructions for converting a user's bank
+  .claude-plugin/      plugin.json — makes this dir an installable Claude Code plugin
+.claude-plugin/        marketplace.json — repo-root marketplace listing the plugin
+.github/workflows/     ci.yml (test/lint/build) + release.yml (tag → built release)
 ```
 
 ## Helping a user build their own question bank
