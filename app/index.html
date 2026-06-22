@@ -11,10 +11,24 @@
     <meta name="apple-mobile-web-app-title" content="Quizer" />
     <title>Quizer</title>
     <style>
+      /* Inline so the page canvas + safe areas are themed before the JS bundle
+         (and index.css) load — otherwise iOS standalone paints the bottom
+         safe-area / home-indicator region with the default white canvas. */
+      :root { color-scheme: light dark; }
+      /* Fill the full standalone height (incl. safe areas) before index.css loads,
+         so the page canvas is never the UA's default white. */
+      html, body { margin: 0; min-height: 100%; background: #0a0a0b; }
+      @media (prefers-color-scheme: light) { html, body { background: #f3f3f4; } }
+
       /* Cold-start boot splash — inline so it paints before the JS bundle loads. */
       #boot {
         position: fixed;
-        inset: 0;
+        /* inset:0 / 100vh exclude the bottom safe-area inset in iOS standalone,
+           leaving a white web-view gap under the home indicator — extend past it. */
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
         z-index: 2147483000;
         display: grid;
         place-items: center;
