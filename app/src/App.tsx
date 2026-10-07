@@ -119,7 +119,7 @@ export default function App() {
   // Carousel home / switcher (only reached when at least one bank exists).
   if (view === 'home') {
     return (
-      <div className="flex min-h-[100dvh] flex-col overflow-x-clip px-4 pt-[env(safe-area-inset-top)] sm:px-6">
+      <div className="flex min-h-[100dvh] flex-col overflow-x-clip px-4 pt-[calc(env(safe-area-inset-top)+0.5rem)] sm:px-6">
         <header className="mx-auto flex w-full max-w-3xl items-center justify-center gap-3 py-6">
           <img src="/icon-192.png" alt="Quizer" width="36" height="36" className="h-9 w-9 rounded-xl object-cover shadow-soft ring-1 ring-line" />
           <div className="leading-tight">
@@ -243,7 +243,8 @@ export function Shell({
     <div
       className={cx(
         'min-h-[100dvh] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] sm:pl-[max(1.5rem,env(safe-area-inset-left))] sm:pr-[max(1.5rem,env(safe-area-inset-right))]',
-        !focus && 'pt-[env(safe-area-inset-top)]',
+        // Same breathing room under the status bar as focus mode's top bar.
+        !focus && 'pt-[calc(env(safe-area-inset-top)+0.5rem)]',
       )}
     >
       {!focus && (
@@ -274,7 +275,11 @@ export function Shell({
                 </span>
               </div>
             )}
-            <div className="tnum text-xs text-faint">{allQuestions.length.toLocaleString()} questions{categoryNote}</div>
+            <div className="tnum truncate text-xs text-faint">
+              {allQuestions.length.toLocaleString()} questions
+              {/* Phones keep this to one line; the category count lives on the Analysis tab. */}
+              <span className="hidden sm:inline">{categoryNote}</span>
+            </div>
           </div>
           <div className="ml-auto flex items-center gap-1">
             {tabs}
