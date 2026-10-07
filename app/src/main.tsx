@@ -3,7 +3,8 @@ import { createRoot } from 'react-dom/client'
 import '@fontsource-variable/geist'
 import '@fontsource-variable/geist-mono'
 import './index.css'
-import App, { UpdatedToast } from './App.tsx'
+import App from './App.tsx'
+import { WhatsNewDialog } from './components/WhatsNewDialog'
 import { requestPersistentStorage } from './lib/persist'
 import { initActiveBank } from './lib/activeBank'
 import { initPwaUpdates } from './lib/pwaUpdate'
@@ -15,7 +16,7 @@ initPwaUpdates()
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
-    <UpdatedToast />
+    <WhatsNewDialog />
   </StrictMode>,
 )
 
