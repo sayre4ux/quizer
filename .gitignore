@@ -33,3 +33,6 @@ CLAUDE.md
 
 # Autopilot orchestration state (briefs, ledger, artifacts)
 .autopilot/
+
+# Claude Code local launch configs (dev/preview servers)
+.claude/
