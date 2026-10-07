@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { QuestionCard } from '../components/QuestionCard';
+import { SettingsButton } from '../components/SettingsDialog';
 import { AccuracyBar, Button, Card, DialogOverlay } from '../components/ui';
-import { cx, pct } from '../components/ui-utils';
+import { contentLang, cx, pct } from '../components/ui-utils';
+import { useScriptConverter } from '../lib/chineseScript';
 import { buildPool } from '../lib/pools';
 import { allQuestions } from '../lib/dataset';
 import { EXAM_MIN_QUESTIONS } from '../lib/constants';
@@ -25,6 +27,7 @@ function fmtTime(ms: number): string {
 
 export function ExamMode({ onExit }: Props) {
   const progress = useProgress();
+  const { convert, lang: zhScript } = useScriptConverter();
   const [phase, setPhase] = useState<Phase>('config');
   const [count, setCount] = useState(progress.settings.examCount);
   const [minutes, setMinutes] = useState(progress.settings.examMinutes);
@@ -179,7 +182,9 @@ export function ExamMode({ onExit }: Props) {
             <Card className="flex flex-col gap-3.5 p-4">
               {results.categories.map(([key, d]) => (
                 <div key={key} className="flex items-center gap-3">
-                  <span className="w-40 shrink-0 truncate text-sm text-fg">{d.name}</span>
+                  <span lang={contentLang(d.name, zhScript)} className="w-40 shrink-0 truncate text-sm text-fg">
+                    {convert(d.name)}
+                  </span>
                   <div className="flex-1">
                     <AccuracyBar value={d.correct / d.total} />
                   </div>
@@ -194,14 +199,19 @@ export function ExamMode({ onExit }: Props) {
 
         <div className="mt-8 mb-3 flex items-center justify-between">
           <h3 className="text-xs font-semibold uppercase tracking-[0.08em] text-faint">Review</h3>
-          <label className="flex cursor-pointer items-center gap-2 text-sm text-muted">
-            <input type="checkbox" checked={reviewWrongOnly} onChange={(e) => setReviewWrongOnly(e.target.checked)} />
+          <label className="-mr-2 flex min-h-11 cursor-pointer items-center gap-2 px-2 text-sm text-muted">
+            <input
+              type="checkbox"
+              className="h-4 w-4 accent-fg"
+              checked={reviewWrongOnly}
+              onChange={(e) => setReviewWrongOnly(e.target.checked)}
+            />
             Wrong only
           </label>
         </div>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-5">
           {reviewList.map((q) => (
-            <Card key={q.qid} className="p-4 sm:p-5">
+            <Card key={q.qid} className="px-3.5 py-4 sm:p-5">
               <QuestionCard question={q} selected={answers[q.qid] ?? []} onToggle={() => {}} revealed />
             </Card>
           ))}
@@ -230,20 +240,22 @@ export function ExamMode({ onExit }: Props) {
 
   const lowTime = deadline - now < 300000;
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 pb-28">
-      <div className="flex items-center justify-between">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-3 pb-[calc(var(--action-bar-h)+1rem)] sm:gap-5">
+      <div className="flex min-h-11 items-center gap-2">
         <span className="tnum text-sm text-muted">
-          Answered {answeredCount}/{questions.length}
+          {idx + 1} / {questions.length}
+          <span className="text-faint"> · {answeredCount} answered</span>
         </span>
         <span
-          className={cx('tnum rounded-lg px-2.5 py-1 font-mono text-lg font-medium', lowTime && 'bg-bad/10')}
+          className={cx('tnum ml-auto rounded-lg px-2.5 py-1 font-mono text-lg font-medium', lowTime && 'bg-bad/10')}
           style={{ color: lowTime ? 'var(--bad)' : 'var(--fg)' }}
         >
           {fmtTime(deadline - now)}
         </span>
+        <SettingsButton className="-mr-2" />
       </div>
 
-      <QuestionCard question={q} selected={sel} onToggle={toggle} revealed={false} index={idx} total={questions.length} />
+      <QuestionCard question={q} selected={sel} onToggle={toggle} revealed={false} meta="compact" />
 
       <div className="flex flex-wrap gap-1.5">
         {questions.map((qq, i) => {
@@ -253,7 +265,7 @@ export function ExamMode({ onExit }: Props) {
               key={qq.qid}
               onClick={() => setIdx(i)}
               className={cx(
-                'tnum h-7 w-7 rounded-lg text-xs font-medium transition',
+                'tnum h-9 w-9 rounded-lg text-xs font-medium transition sm:h-7 sm:w-7',
                 i === idx
                   ? 'bg-primary text-onprimary'
                   : ans
@@ -268,24 +280,24 @@ export function ExamMode({ onExit }: Props) {
       </div>
 
       <div
-        className="fixed inset-x-0 bottom-0 border-t border-line backdrop-blur-xl"
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-line backdrop-blur-xl"
         style={{ background: 'var(--glass)' }}
       >
-        <div className="mx-auto flex max-w-2xl items-center gap-2 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6">
-          <Button variant="danger" onClick={() => setConfirmEnd(true)}>
+        <div className="mx-auto flex max-w-2xl items-center gap-2 pt-2 pr-[max(1rem,env(safe-area-inset-right))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))] sm:pt-3 sm:pr-[max(1.5rem,env(safe-area-inset-right))] sm:pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:pl-[max(1.5rem,env(safe-area-inset-left))]">
+          <Button variant="danger" className="min-h-11" onClick={() => setConfirmEnd(true)}>
             End
           </Button>
           <div className="ml-auto flex gap-2">
-            <Button onClick={() => setIdx((i) => Math.max(0, i - 1))} disabled={idx === 0}>
+            <Button className="min-h-11" onClick={() => setIdx((i) => Math.max(0, i - 1))} disabled={idx === 0}>
               Prev
             </Button>
             {idx + 1 < questions.length ? (
-              <Button variant="primary" className="px-7" onClick={() => setIdx((i) => i + 1)}>
+              <Button variant="primary" className="min-h-11 px-7" onClick={() => setIdx((i) => i + 1)}>
                 Next
               </Button>
             ) : (
               <button
-                className="rounded-xl bg-good px-7 py-2.5 text-sm font-medium text-white shadow-soft transition hover:opacity-90 active:scale-[0.975]"
+                className="min-h-11 rounded-xl bg-good px-7 text-sm font-medium text-white shadow-soft transition hover:opacity-90 active:scale-[0.975]"
                 onClick={submit}
               >
                 Submit

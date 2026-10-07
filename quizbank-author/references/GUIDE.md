@@ -18,6 +18,8 @@ from the source, never invent or solve them. See the hard rules in `SKILL.md`.
 3. **Build** `quizbank.json` per `SCHEMA.md`, applying `INTERPRETATION.md` for
    answer→label mapping, dedupe, taxonomy, and images. Write a
    `conversion-report.json` evidence ledger (one row per source item).
+   Map the source's answer even if it looks wrong; never write `ai`/`aiAnalysis`
+   during conversion (see `INTERPRETATION.md`, "The fidelity rule").
 4. **Images:** use only user-supplied files; match each to its question; never
    invent one. If messy, keep asking; after 3 rounds, offer to drop those questions.
 5. **Validate** (the user runs this, or you do if you have a shell):

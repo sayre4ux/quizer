@@ -19,6 +19,19 @@ export default defineConfig({
       workbox: {
         // Only app shell here; the manifest + its icons are auto-precached by the plugin.
         globPatterns: ['**/*.{js,css,html}'],
+        // The OpenCC dictionaries (~460 KB gzip) are only needed for Chinese banks,
+        // so they stay out of the install-time precache: English-only users never
+        // download them. They are cached on first fetch instead, and the app
+        // prefetches them in idle time once a Chinese bank is open, so the
+        // 简体/繁體 switch still works offline afterwards.
+        globIgnores: ['**/opencc-*.js'],
+        runtimeCaching: [
+          {
+            urlPattern: /\/assets\/opencc-[^/]+\.js$/,
+            handler: 'CacheFirst',
+            options: { cacheName: 'opencc', expiration: { maxEntries: 32 } },
+          },
+        ],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       },
       manifest: {
@@ -37,6 +50,20 @@ export default defineConfig({
       },
     }),
   ],
+  // The lazily loaded OpenCC phrase dictionary (Simplified->Traditional display)
+  // is ~1 MB by itself; it never loads at startup, so don't warn about it.
+  build: {
+    chunkSizeWarningLimit: 1100,
+    rollupOptions: {
+      output: {
+        // A fixed prefix lets the service worker route these chunks (see workbox above).
+        chunkFileNames: (chunk) =>
+          chunk.moduleIds.some((id) => id.includes('/node_modules/opencc-js/'))
+            ? 'assets/opencc-[name]-[hash].js'
+            : 'assets/[name]-[hash].js',
+      },
+    },
+  },
   server: { host: true, allowedHosts: ['.ts.net'] },
   preview: { host: true, allowedHosts: ['.ts.net'] },
 })

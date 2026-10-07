@@ -12,6 +12,12 @@ export function isSeen(p?: QuestionProgress): boolean {
   return !!p && p.attempts.length > 0;
 }
 
+// At least one attempt where the user actually picked an answer. Stricter than
+// isSeen: exam submission records an empty attempt for every skipped question.
+export function isAnswered(p?: QuestionProgress): boolean {
+  return !!p && p.attempts.some((a) => a.choice.length > 0);
+}
+
 export function lastCorrect(p?: QuestionProgress): boolean | null {
   const a = lastAttempt(p);
   return a ? a.correct : null;

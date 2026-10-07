@@ -29,3 +29,7 @@ MEMORY.md
 RELEASE_PLAN.md
 CHANGES.md
 CLAUDE.md
+.vercel
+
+# Autopilot orchestration state (briefs, ledger, artifacts)
+.autopilot/

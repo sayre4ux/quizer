@@ -5,7 +5,9 @@ import { exitEphemeral, initActiveBank, switchBank } from './lib/activeBank';
 import { importSampleEphemeral } from './lib/importBank';
 import { store, useActiveBank, useProgress } from './state/useStore';
 import { Button } from './components/ui';
-import { cx } from './components/ui-utils';
+import { contentLang, cx } from './components/ui-utils';
+import { useScriptConverter } from './lib/chineseScript';
+import { SettingsButton } from './components/SettingsDialog';
 import { AnalysisTab, type StartCfg } from './modes/AnalysisTab';
 import { ExamMode } from './modes/ExamMode';
 import { HomeTab } from './modes/HomeTab';
@@ -142,7 +144,7 @@ export default function App() {
 
   if (active?.type === 'session') {
     return (
-      <Shell>
+      <Shell focus>
         <SessionRunner title={active.title} questions={active.questions} mode={active.mode} onExit={() => setActive(null)} />
       </Shell>
     );
@@ -150,7 +152,7 @@ export default function App() {
 
   if (active?.type === 'exam') {
     return (
-      <Shell>
+      <Shell focus>
         <ExamMode onExit={() => setActive(null)} />
       </Shell>
     );
@@ -214,48 +216,67 @@ function Segmented({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
   );
 }
 
-function Shell({
+// focus: sessions and exams drop the app header entirely, at every width, so the
+// question gets the screen; their own top bar carries back/progress/settings.
+export function Shell({
   children,
   tabs,
   container = 'max-w-2xl',
   onModules,
+  focus = false,
 }: {
   children: React.ReactNode;
   tabs?: React.ReactNode;
   container?: string;
   onModules?: () => void;
+  focus?: boolean;
 }) {
   const categoryNote = categories.length > 0 ? ` · ${categories.length} categories` : '';
+  const { convert, lang: zhScript } = useScriptConverter();
   return (
-    <div className="min-h-[100dvh] px-4 pt-[env(safe-area-inset-top)] sm:px-6">
-      <header className={cx('mx-auto flex items-center gap-3 py-5', container)}>
-        {onModules && (
-          <button
-            onClick={onModules}
-            className="-ml-1 grid h-9 w-9 shrink-0 place-items-center rounded-lg text-muted transition hover:bg-surface-2 hover:text-fg active:scale-95"
-            aria-label="Back to modules"
-            title="Modules"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
-        )}
-        <img src="/icon-192.png" alt="Quizer" width="36" height="36" className="h-9 w-9 shrink-0 rounded-xl object-cover shadow-soft ring-1 ring-line" />
-        <div className="leading-tight">
-          <div className="text-[15px] font-semibold tracking-tight text-fg">Quizer</div>
-          {moduleLabel && (
-            <div className="mt-1 mb-0.5">
-              <span className="inline-flex items-center rounded-md bg-surface-2 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-muted">
-                {moduleLabel}
-              </span>
-            </div>
+    <div
+      className={cx(
+        'min-h-[100dvh] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] sm:pl-[max(1.5rem,env(safe-area-inset-left))] sm:pr-[max(1.5rem,env(safe-area-inset-right))]',
+        !focus && 'pt-[env(safe-area-inset-top)]',
+      )}
+    >
+      {!focus && (
+        <header className={cx('mx-auto flex items-center gap-3 py-5', container)}>
+          {onModules && (
+            <button
+              onClick={onModules}
+              className="-ml-1 grid h-9 w-9 shrink-0 place-items-center rounded-lg text-muted transition hover:bg-surface-2 hover:text-fg active:scale-95"
+              aria-label="Back to modules"
+              title="Modules"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
           )}
-          <div className="tnum text-xs text-faint">{allQuestions.length.toLocaleString()} questions{categoryNote}</div>
-        </div>
-        {tabs && <div className="ml-auto">{tabs}</div>}
-      </header>
-      <main className="pb-12">{children}</main>
+          {/* Phones drop the logo so the settings gear fits beside the tabs. */}
+          <img src="/icon-192.png" alt="Quizer" width="36" height="36" className="hidden h-9 w-9 shrink-0 rounded-xl object-cover shadow-soft ring-1 ring-line sm:block" />
+          <div className="min-w-0 leading-tight">
+            <div className="text-[15px] font-semibold tracking-tight text-fg">Quizer</div>
+            {moduleLabel && (
+              <div className="mt-1 mb-0.5">
+                <span
+                  lang={contentLang(moduleLabel, zhScript)}
+                  className="inline-flex items-center rounded-md bg-surface-2 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-muted"
+                >
+                  {convert(moduleLabel)}
+                </span>
+              </div>
+            )}
+            <div className="tnum text-xs text-faint">{allQuestions.length.toLocaleString()} questions{categoryNote}</div>
+          </div>
+          <div className="ml-auto flex items-center gap-1">
+            {tabs}
+            <SettingsButton className="-mr-2" />
+          </div>
+        </header>
+      )}
+      <main className={cx('pb-12', focus && 'pt-[max(0.75rem,env(safe-area-inset-top))]')}>{children}</main>
       <SaveErrorBanner />
     </div>
   );

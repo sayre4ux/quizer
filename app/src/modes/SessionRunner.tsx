@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { QuestionCard } from '../components/QuestionCard';
+import { SettingsButton } from '../components/SettingsDialog';
 import { Button } from '../components/ui';
-import { cx, pct } from '../components/ui-utils';
+import { contentLang, cx, pct } from '../components/ui-utils';
+import { useScriptConverter } from '../lib/chineseScript';
 import { sameSet } from '../lib/sameSet';
 import { store, useProgress } from '../state/useStore';
 import type { Mode, Question } from '../types';
@@ -19,8 +21,11 @@ export function SessionRunner({ title, questions, mode, onExit }: Props) {
   const [revealed, setRevealed] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
   const [done, setDone] = useState(false);
+  const revealAnchorRef = useRef<HTMLButtonElement>(null);
+  const explanationRef = useRef<HTMLDivElement>(null);
 
   const progress = useProgress();
+  const { convert, lang: zhScript } = useScriptConverter();
   const q = questions[idx];
   const flagged = progress.questions[q?.qid ?? '']?.flagged ?? false;
 
@@ -63,6 +68,8 @@ export function SessionRunner({ title, questions, mode, onExit }: Props) {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (done || !q) return;
+      // A dialog (settings, enlarged figure) owns the keyboard while open.
+      if (document.querySelector('[role="dialog"][aria-modal="true"]')) return;
       const k = e.key.toLowerCase();
       const labels = q.options.map((o) => o.label.toLowerCase());
       const numIdx = Number(k) - 1;
@@ -80,6 +87,22 @@ export function SessionRunner({ title, questions, mode, onExit }: Props) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [q, revealed, done, toggle, check, advance]);
+
+  // Phones only: after Check, bring the answer feedback into view when the
+  // explanation box landed low on the screen. Never scrolls up.
+  useEffect(() => {
+    if (!revealed || window.matchMedia('(min-width: 640px)').matches) return;
+    const id = requestAnimationFrame(() => {
+      const anchor = revealAnchorRef.current;
+      const box = explanationRef.current;
+      if (!anchor || !box || box.getBoundingClientRect().top <= window.innerHeight * 0.6) return;
+      const top = window.scrollY + anchor.getBoundingClientRect().top - 12;
+      if (top <= window.scrollY) return;
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [revealed]);
 
   const accuracy = useMemo(() => {
     const answered = done ? questions.length : idx + (revealed ? 1 : 0);
@@ -120,12 +143,24 @@ export function SessionRunner({ title, questions, mode, onExit }: Props) {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 pb-28">
-      <div className="flex items-center justify-between">
-        <button className="-ml-1 text-sm font-medium text-muted transition hover:text-fg" onClick={exit}>
-          ← {title}
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-3 pb-[calc(var(--action-bar-h)+1rem)] sm:gap-6">
+      <div className="flex min-h-11 items-center gap-2">
+        <button
+          className="-ml-2 inline-flex min-h-11 min-w-0 items-center gap-1 rounded-lg px-2 text-sm font-medium text-muted transition hover:text-fg"
+          onClick={exit}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="-ml-0.5 shrink-0">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+          <span lang={contentLang(title, zhScript)} className="truncate">{convert(title)}</span>
         </button>
-        <div className="tnum text-sm text-faint">{revealed || idx > 0 ? `${pct(accuracy)} acc` : ''}</div>
+        <div className="tnum ml-auto flex shrink-0 items-center gap-1.5 text-xs text-faint">
+          <span>
+            {idx + 1} / {questions.length}
+          </span>
+          {(revealed || idx > 0) && <span>· {pct(accuracy)}</span>}
+          <SettingsButton className="-mr-2" />
+        </div>
       </div>
 
       <QuestionCard
@@ -133,32 +168,34 @@ export function SessionRunner({ title, questions, mode, onExit }: Props) {
         selected={selected}
         onToggle={toggle}
         revealed={revealed}
-        index={idx}
-        total={questions.length}
+        meta="compact"
+        revealAnchorRef={revealAnchorRef}
+        explanationRef={explanationRef}
       />
 
       <div
-        className="fixed inset-x-0 bottom-0 border-t border-line backdrop-blur-xl"
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-line backdrop-blur-xl"
         style={{ background: 'var(--glass)' }}
       >
-        <div className="mx-auto flex max-w-2xl items-center gap-2 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6">
+        <div className="mx-auto flex max-w-2xl items-center gap-2 pt-2 pr-[max(1rem,env(safe-area-inset-right))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))] sm:pt-3 sm:pr-[max(1.5rem,env(safe-area-inset-right))] sm:pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:pl-[max(1.5rem,env(safe-area-inset-left))]">
           <button
             className={cx(
-              'rounded-xl border px-3 py-2.5 text-sm font-medium transition active:scale-95',
+              'min-h-11 rounded-xl border px-3.5 text-sm font-medium transition active:scale-95',
               flagged ? 'border-warn/40 bg-warn/10 text-warn' : 'border-line text-muted hover:border-line-strong',
             )}
             onClick={() => store.toggleFlag(q.qid)}
+            aria-pressed={flagged}
             title="Flag (F)"
           >
             {flagged ? '★ Flagged' : '☆ Flag'}
           </button>
 
           {!revealed ? (
-            <Button variant="primary" className="ml-auto px-7 py-2.5" onClick={check} disabled={!selected.length}>
+            <Button variant="primary" className="ml-auto min-h-11 min-w-28 px-7" onClick={check} disabled={!selected.length}>
               Check
             </Button>
           ) : (
-            <Button variant="primary" className="ml-auto px-7 py-2.5" onClick={advance}>
+            <Button variant="primary" className="ml-auto min-h-11 min-w-28 px-7" onClick={advance}>
               {idx + 1 >= questions.length ? 'Finish' : 'Next'}
             </Button>
           )}

@@ -20,6 +20,16 @@
   --shadow-soft: 0 1px 2px rgba(16, 16, 24, 0.05), 0 6px 20px -10px rgba(16, 16, 24, 0.14);
   --shadow-pop: 0 2px 6px rgba(16, 16, 24, 0.06), 0 18px 40px -16px rgba(16, 16, 24, 0.22);
   --glass: rgba(255, 255, 255, 0.72);
+
+  /* fixed bottom action bar height: top padding + 44px button + bottom padding
+     (at least the safe-area inset) + 1px border. Phones use the slimmer bar. */
+  --action-bar-h: calc(3.25rem + 1px + max(0.5rem, env(safe-area-inset-bottom)));
+}
+
+@media (min-width: 40rem) {
+  :root {
+    --action-bar-h: calc(3.5rem + 1px + max(0.75rem, env(safe-area-inset-bottom)));
+  }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -71,6 +81,21 @@
   --shadow-pop: var(--shadow-pop);
 }
 
+@theme {
+  --animate-ai-reveal: ai-reveal 180ms cubic-bezier(0.2, 0, 0, 1);
+
+  @keyframes ai-reveal {
+    from {
+      opacity: 0;
+      transform: translateY(-3px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
 html,
 body,
 #root {
@@ -79,6 +104,12 @@ body,
 
 html {
   scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 body {
@@ -124,10 +155,17 @@ p {
   font-variant-numeric: tabular-nums;
 }
 
-.cn {
-  font-family: var(--font-sans), 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-  line-height: 1.85;
+/* Negative Latin tracking crowds ideographs. :lang() outranks the h1-h3 rule
+   above, and both are unlayered, so this can't be done with a utility class. */
+:lang(zh),
+:lang(ja),
+:lang(ko) {
   letter-spacing: 0;
+}
+
+/* Question prompts are paragraphs, not headings: balance makes long stems ragged. */
+.q-prompt {
+  text-wrap: pretty;
 }
 
 /* consistent, accessible focus ring */

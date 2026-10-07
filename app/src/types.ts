@@ -20,6 +20,20 @@ export interface Question {
   paper: string | null;
   topic: string | null;
   difficulty: number | null;
+  ai: QuestionAi | null; // advisory AI second opinion; never used for grading
+}
+
+export interface QuestionAi {
+  answer: string[]; // option labels, in option order
+  explanation: string;
+  doubt: boolean; // false when absent in the manifest
+}
+
+// Who produced the bank's AI analysis (manifest `aiAnalysis`).
+export interface AiProvenance {
+  model: string;
+  date: string | null;
+  note: string | null;
 }
 
 export interface CategoryMeta {
@@ -35,6 +49,10 @@ export interface RuntimeDataset {
   questionsById: Map<string, Question>;
   categories: CategoryMeta[];
   papers: string[];
+  aiProvenance: AiProvenance | null;
+  // Chinese script of the bank's text (manifest tag, else detected); null when
+  // not Chinese or undetermined. Drives the Simplified/Traditional display option.
+  bankScript: 'hans' | 'hant' | null;
 }
 
 export type Mode = 'drill' | 'exam' | 'review' | 'srs';

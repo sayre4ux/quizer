@@ -9,6 +9,8 @@ The `correct` answer must come from the user's source. You may reason **only to 
 the source's stated answer to option labels** — never to *work out* the answer
 yourself. If a question has no answer in the source, or you can't map it
 confidently, it is **`unresolved`** (ask the user) — never a guess.
+If the source answer looks wrong, still map the source answer. Disagreement belongs
+in an optional, separately requested `ai` field, never in `correct`.
 
 ## Mapping the answer to option labels
 

@@ -12,7 +12,7 @@ function makeQuestion(id: string, opts: Partial<Question> = {}): Question {
     type: 'single', prompt: `Q${id}`, promptImage: null,
     options: [{ label: 'A', text: 'a', image: null }],
     correct: ['A'], explanation: null,
-    category: 1, categoryName: 'Cat1', paper: null, topic: 'Topic1', difficulty: null,
+    category: 1, categoryName: 'Cat1', paper: null, topic: 'Topic1', difficulty: null, ai: null,
     ...opts,
   };
 }
@@ -37,6 +37,8 @@ beforeEach(() => {
     questionsById: new Map(questions.map((q) => [q.qid, q])),
     categories: [{ id: 1, name: 'Security' }, { id: 2, name: 'Network' }],
     papers: [],
+    aiProvenance: null,
+    bankScript: null,
   });
 });
 

@@ -1,6 +1,8 @@
 import 'fake-indexeddb/auto';
 import { beforeEach, describe, it, expect } from 'vitest';
 import { validateBank } from './validate';
+import { aiBank } from './fixtures';
+import { buildDataset } from '../buildDataset';
 import {
   installBank, deleteBank, listBankMeta, getBankRecord, getProgressRecord,
   getActiveBankId, computeInstalledId, isDisplayNameTaken, suggestDisplayName,
@@ -103,5 +105,38 @@ describe('dedup helpers', () => {
   it('suggestDisplayName appends a counter', () => {
     const metas = [{ installedId: 'x', displayName: 'CISSP' } as never];
     expect(suggestDisplayName('CISSP', metas)).toBe('CISSP 1');
+  });
+});
+
+describe('ai analysis survives install (normalized-output round-trip)', () => {
+  it('stores ai/aiAnalysis and buildDataset sees them after getBankRecord', async () => {
+    const r = validateBank(aiBank(), new Map());
+    if (!r.ok) throw new Error(r.errors.join('; '));
+    await installBank(r.value, 'Demo');
+    await __closeDbForTests(); // force a real read from IDB, not a cached handle
+    const rec = await getBankRecord('demo');
+    expect(rec?.manifest.questions[1].ai).toEqual({ answer: ['B'], explanation: 'B is right, not A.', doubt: undefined });
+    expect(rec?.manifest.questions[2].ai?.doubt).toBe(true);
+    expect(rec?.manifest.aiAnalysis).toEqual({ model: 'Claude Opus 5.5', date: '2026-10', note: 'Advisory only.' });
+    if (!rec) throw new Error('bank record missing');
+    const d = buildDataset('demo', rec.manifest);
+    expect(d.questions[1].ai).toEqual({ answer: ['B'], explanation: 'B is right, not A.', doubt: false });
+    expect(d.questions[4].ai).toBeNull();
+    expect(d.aiProvenance?.model).toBe('Claude Opus 5.5');
+  });
+
+  it('a legacy (v0.1.0) record without ai fields builds with null ai and null provenance', async () => {
+    // v0.1.0's validator output had no ai/aiAnalysis keys at all; strip them to match.
+    const bank = validated();
+    delete bank.manifest.aiAnalysis;
+    for (const q of bank.manifest.questions) delete q.ai;
+    await installBank(bank, 'Demo');
+    const rec = await getBankRecord('demo');
+    if (!rec) throw new Error('bank record missing');
+    expect('aiAnalysis' in rec.manifest).toBe(false);
+    expect(rec.manifest.questions.some((q) => 'ai' in q)).toBe(false);
+    const d = buildDataset('demo', rec.manifest);
+    expect(d.aiProvenance).toBeNull();
+    expect(d.questions.every((q) => q.ai === null)).toBe(true);
   });
 });

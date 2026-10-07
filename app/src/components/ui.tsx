@@ -54,9 +54,10 @@ export function Card({
   );
 }
 
-export function Badge({ children, color }: { children: ReactNode; color?: string }) {
+export function Badge({ children, color, lang }: { children: ReactNode; color?: string; lang?: string }) {
   return (
     <span
+      lang={lang}
       className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium tracking-tight"
       style={{
         color: color ?? 'var(--muted)',
@@ -108,11 +109,13 @@ export function DialogOverlay({
   onClose,
   label,
   panelClass,
+  overlayClass,
 }: {
   children: ReactNode;
   onClose: () => void;
   label: string;
   panelClass?: string;
+  overlayClass?: string;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<Element | null>(null);
@@ -150,7 +153,10 @@ export function DialogOverlay({
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6 backdrop-blur-sm" onClick={onClose}>
+    <div
+      className={cx('fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm', overlayClass ?? 'px-6')}
+      onClick={onClose}
+    >
       <div
         ref={panelRef}
         className={cx('w-full min-w-0 rounded-2xl bg-surface p-5 shadow-pop', panelClass ?? 'max-w-sm')}

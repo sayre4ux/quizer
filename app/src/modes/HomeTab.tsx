@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { Button, Card, Stat } from '../components/ui';
-import { cx, pct } from '../components/ui-utils';
+import { contentLang, cx, pct } from '../components/ui-utils';
+import { useScriptConverter } from '../lib/chineseScript';
 import { categories } from '../lib/dataset';
 import { poolCount } from '../lib/pools';
 import { overall } from '../lib/stats';
@@ -114,8 +115,10 @@ function BackupControls() {
 
 export function HomeTab({ start, startExam }: Props) {
   const progress = useProgress();
+  const { convert, lang: zhScript } = useScriptConverter();
   const o = overall(progress);
   const unseen = poolCount(progress, { kind: 'unseen' });
+  const answered = poolCount(progress, { kind: 'answered' });
   const wrong = poolCount(progress, { kind: 'everWrong' });
   const due = o.due;
   const flagged = o.flagged;
@@ -126,7 +129,9 @@ export function HomeTab({ start, startExam }: Props) {
       onClick={() => start({ title: `Drill · ${c.name}`, filter: { kind: 'category', value: c.id } })}
       className={className}
     >
-      <span className="min-w-0 truncate text-sm font-medium text-fg">{c.name}</span>
+      <span lang={contentLang(c.name, zhScript)} className="min-w-0 truncate text-sm font-medium text-fg">
+        {convert(c.name)}
+      </span>
       <span className="tnum ml-auto text-sm text-faint">{poolCount(progress, { kind: 'category', value: c.id })}</span>
     </button>
   );
@@ -157,6 +162,13 @@ export function HomeTab({ start, startExam }: Props) {
           count={wrong}
           onClick={() => start({ title: 'Review wrong', filter: { kind: 'everWrong' }, mode: 'review' })}
           disabled={wrong === 0}
+        />
+        <ModeCard
+          title="Answered before"
+          desc="Drill the questions you've already answered"
+          count={answered}
+          onClick={() => start({ title: 'Answered before', filter: { kind: 'answered' } })}
+          disabled={answered === 0}
         />
         <ModeCard
           title="Spaced repetition"

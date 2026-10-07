@@ -9,7 +9,7 @@ function makeQuestion(id: string, opts: Partial<Question> = {}): Question {
     type: 'single', prompt: `Q${id}`, promptImage: null,
     options: [{ label: 'A', text: 'a', image: null }, { label: 'B', text: 'b', image: null }],
     correct: ['A'], explanation: null,
-    category: 1, categoryName: 'Cat1', paper: 'Paper1', topic: 'Topic1', difficulty: null,
+    category: 1, categoryName: 'Cat1', paper: 'Paper1', topic: 'Topic1', difficulty: null, ai: null,
     ...opts,
   };
 }
@@ -44,6 +44,8 @@ beforeEach(() => {
     questionsById: new Map(questions.map((q) => [q.qid, q])),
     categories: [{ id: 1, name: 'Cat1' }, { id: 2, name: 'Cat2' }],
     papers: ['P1', 'P2'],
+    aiProvenance: null,
+    bankScript: null,
   });
 });
 
@@ -80,6 +82,33 @@ describe('buildPool filters', () => {
     const pool = buildPool(store, { filter: { kind: 'unseen' } });
     expect(pool.length).toBe(3);
     expect(pool.every((q) => !store.questions[q.qid])).toBe(true);
+  });
+
+  it('kind: answered returns questions with a real answer, right or wrong', () => {
+    const store = withProgress(['bank:1', 'bank:3'], true);
+    store.questions['bank:2'] = { attempts: [{ t: 1, choice: ['B'], correct: false, mode: 'drill' }], flagged: false, srs: null };
+    const pool = buildPool(store, { filter: { kind: 'answered' } });
+    expect(pool.map((q) => q.qid).sort()).toEqual(['bank:1', 'bank:2', 'bank:3']);
+  });
+
+  it('kind: answered skips questions only left blank in an exam, and flag-only entries', () => {
+    const store = withProgress(['bank:1'], true);
+    store.questions['bank:2'] = { attempts: [{ t: 1, choice: [], correct: false, mode: 'exam' }], flagged: false, srs: null };
+    store.questions['bank:3'] = { attempts: [], flagged: true, srs: null };
+    store.questions['bank:4'] = {
+      attempts: [
+        { t: 1, choice: [], correct: false, mode: 'exam' },
+        { t: 2, choice: ['A'], correct: true, mode: 'exam' },
+      ],
+      flagged: false, srs: null,
+    };
+    const pool = buildPool(store, { filter: { kind: 'answered' } });
+    expect(pool.map((q) => q.qid).sort()).toEqual(['bank:1', 'bank:4']);
+    expect(poolCount(store, { kind: 'answered' })).toBe(2);
+  });
+
+  it('kind: answered on an empty store is empty', () => {
+    expect(buildPool(emptyStore, { filter: { kind: 'answered' } })).toEqual([]);
   });
 
   it('kind: wrong returns questions where last attempt was wrong', () => {

@@ -1,6 +1,7 @@
 import { AccuracyBar, Button, Card } from '../components/ui';
 import { CategoryRadar, MasteryBar, ReadinessRing } from '../components/charts';
-import { pct, shortLabel } from '../components/ui-utils';
+import { contentLang, pct, shortLabel } from '../components/ui-utils';
+import { useScriptConverter } from '../lib/chineseScript';
 import {
   byCategory, byPaper, categoryMastery, learningMix, mostFailedTopics, readiness, UNCATEGORIZED,
 } from '../lib/stats';
@@ -30,6 +31,9 @@ function categoryValue(key: string): number | null {
 
 export function AnalysisTab({ start }: Props) {
   const progress = useProgress();
+  // Labels are converted for display only; filters keep the original keys.
+  const { convert, lang: zhScript } = useScriptConverter();
+  const zh = (s: string) => contentLang(s, zhScript);
   const cats = byCategory(progress);
   const papers = byPaper(progress);
   const failedTopics = mostFailedTopics(progress);
@@ -37,7 +41,10 @@ export function AnalysisTab({ start }: Props) {
   const mix = learningMix(progress);
   const mastery = categoryMastery(progress);
   const hasCategories = mastery.length > 0;
-  const radarData = mastery.map((d) => ({ id: d.id, label: d.name, short: shortLabel(d.name), value: d.pct }));
+  const radarData = mastery.map((d) => {
+    const name = convert(d.name);
+    return { id: d.id, label: name, short: shortLabel(name), value: d.pct };
+  });
 
   return (
     <div className="mx-auto max-w-2xl md:max-w-4xl">
@@ -63,7 +70,7 @@ export function AnalysisTab({ start }: Props) {
                 <div className="flex flex-col gap-3">
                   {mastery.map((d) => (
                     <div key={d.id} className="flex items-center gap-3">
-                      <span className="w-32 shrink-0 truncate text-sm text-fg">{d.name}</span>
+                      <span lang={zh(d.name)} className="w-32 shrink-0 truncate text-sm text-fg">{convert(d.name)}</span>
                       <div className="flex-1">
                         <AccuracyBar value={d.pct} />
                       </div>
@@ -89,7 +96,7 @@ export function AnalysisTab({ start }: Props) {
             {cats.map((d) => (
               <Card key={d.key} className="p-4">
                 <div className="flex items-center gap-2.5">
-                  <span className="text-sm font-semibold tracking-tight text-fg">{d.label}</span>
+                  <span lang={zh(d.label)} className="text-sm font-semibold tracking-tight text-fg">{convert(d.label)}</span>
                   <span className="tnum ml-auto text-sm font-medium text-fg">{pct(d.accuracy)}</span>
                 </div>
                 <div className="mt-3">
@@ -138,7 +145,7 @@ export function AnalysisTab({ start }: Props) {
             {failedTopics.map((t) => (
               <div key={t.key} className="flex items-center gap-3 px-4 py-3">
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium text-fg">{t.label}</div>
+                  <div lang={zh(t.label)} className="truncate text-sm font-medium text-fg">{convert(t.label)}</div>
                   <div className="tnum text-xs text-faint">
                     {t.wrong} wrong · {pct(t.accuracy)} acc
                   </div>
@@ -163,7 +170,7 @@ export function AnalysisTab({ start }: Props) {
         <Card className="flex flex-col gap-3.5 p-4">
           {papers.map((p) => (
             <div key={p.key} className="flex items-center gap-3">
-              <span className="w-24 shrink-0 text-sm text-fg">{p.label}</span>
+              <span lang={zh(p.label)} className="w-24 shrink-0 text-sm text-fg">{convert(p.label)}</span>
               <div className="flex-1">
                 <AccuracyBar value={p.accuracy} />
               </div>

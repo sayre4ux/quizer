@@ -9,7 +9,7 @@ function makeQuestion(id: string): Question {
     type: 'single', prompt: `Q${id}`, promptImage: null,
     options: [{ label: 'A', text: 'a', image: null }, { label: 'B', text: 'b', image: null }],
     correct: ['A'], explanation: null,
-    category: 1, categoryName: 'Cat1', paper: null, topic: null, difficulty: null,
+    category: 1, categoryName: 'Cat1', paper: null, topic: null, difficulty: null, ai: null,
   };
 }
 
@@ -23,6 +23,8 @@ beforeEach(() => {
     questionsById: new Map(questions.map((q) => [q.qid, q])),
     categories: [{ id: 1, name: 'Cat1' }],
     papers: [],
+    aiProvenance: null,
+    bankScript: null,
   });
   store.adopt('bank', null);
 });

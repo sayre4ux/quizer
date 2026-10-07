@@ -1,10 +1,11 @@
 import { EXAM_MAX_MINUTES, EXAM_MIN_QUESTIONS } from '../constants';
 import {
-  ASSETS_PREFIX, BANK_ID_RE, CATEGORY_KEYS, EXAM_KEYS, FORMAT_TAG, FORMAT_VERSION,
-  LIMITS, MANIFEST_KEYS, OPTION_KEYS, QUESTION_ID_RE, QUESTION_KEYS, sniffImageMime,
+  AI_ANALYSIS_KEYS, AI_KEYS, ASSETS_PREFIX, BANK_ID_RE, CATEGORY_KEYS, EXAM_KEYS, FORMAT_TAG,
+  FORMAT_VERSION, LIMITS, MANIFEST_KEYS, OPTION_KEYS, QUESTION_ID_RE, QUESTION_KEYS, sniffImageMime,
 } from './format';
 import type {
-  ManifestCategory, ManifestOption, ManifestQuestion, QuizBankManifest, Result, ValidatedBank,
+  ManifestAiAnalysis, ManifestCategory, ManifestOption, ManifestQuestion, ManifestQuestionAi,
+  QuizBankManifest, Result, ValidatedBank,
 } from './format';
 
 const isObj = (v: unknown): v is Record<string, unknown> =>
@@ -121,6 +122,22 @@ export function validateBank(raw: unknown, assets: Map<string, Uint8Array>): Res
     }
   }
 
+  // ---- aiAnalysis (provenance label for per-question `ai`) ----
+  let aiAnalysis: ManifestAiAnalysis | undefined;
+  if (m.aiAnalysis !== undefined) {
+    if (!isObj(m.aiAnalysis)) err('manifest.aiAnalysis must be an object');
+    else {
+      const a = m.aiAnalysis;
+      rejectUnknown(a, AI_ANALYSIS_KEYS, 'aiAnalysis');
+      checkStr(a.model, 'aiAnalysis.model', LIMITS.aiModelMax, true);
+      checkStr(a.date, 'aiAnalysis.date', LIMITS.aiDateMax, false);
+      checkStr(a.note, 'aiAnalysis.note', LIMITS.aiNoteMax, false);
+      if (isStr(a.model)) {
+        aiAnalysis = { model: a.model, date: isStr(a.date) ? a.date : undefined, note: isStr(a.note) ? a.note : undefined };
+      }
+    }
+  }
+
   // ---- cover ----
   const coverManifestPath = m.cover === undefined ? null : checkAsset(m.cover, 'manifest.cover');
 
@@ -137,6 +154,7 @@ export function validateBank(raw: unknown, assets: Map<string, Uint8Array>): Res
     }
     const seenIds = new Set<string>();
     const dupIds = new Set<string>();
+    let anyAi = false;
     m.questions.forEach((q, i) => {
       const where = `questions[${i}]`;
       if (!isObj(q)) { err(`${where} must be an object`); return; }
@@ -214,6 +232,38 @@ export function validateBank(raw: unknown, assets: Map<string, Uint8Array>): Res
         type = correct.length > 1 ? 'multi' : 'single';
       }
 
+      // ai (advisory second opinion; never graded — `correct` stays the key)
+      let ai: ManifestQuestionAi | undefined;
+      if (q.ai !== undefined) {
+        anyAi = true;
+        if (!isObj(q.ai)) err(`${where}.ai must be an object`);
+        else {
+          const a = q.ai;
+          rejectUnknown(a, AI_KEYS, `${where}.ai`);
+          let answer: string[] | undefined;
+          if (!Array.isArray(a.answer) || a.answer.length === 0) {
+            err(`${where}.ai.answer must be a non-empty array of option labels`);
+          } else if (!a.answer.every(isStr)) {
+            err(`${where}.ai.answer must contain only strings`);
+          } else {
+            answer = a.answer as string[];
+            const seenAi = new Set<string>();
+            for (const c of answer) {
+              if (!labels.has(c)) err(`${where}.ai.answer references unknown label "${c}"`);
+              else if (seenAi.has(c)) err(`${where}.ai.answer lists "${c}" more than once`);
+              else seenAi.add(c);
+            }
+            // multi accepts >=1: the AI may dispute the key's cardinality.
+            if (type === 'single' && answer.length !== 1) err(`${where}.ai: type "single" requires exactly 1 AI answer`);
+          }
+          checkStr(a.explanation, `${where}.ai.explanation`, LIMITS.aiExplanationMax, true);
+          if (a.doubt !== undefined && typeof a.doubt !== 'boolean') err(`${where}.ai.doubt must be a boolean`);
+          if (answer && isStr(a.explanation)) {
+            ai = { answer, explanation: a.explanation, doubt: typeof a.doubt === 'boolean' ? a.doubt : undefined };
+          }
+        }
+      }
+
       if (isStr(q.id)) {
         questions.push({
           id: q.id, type, prompt: isStr(q.prompt) ? q.prompt : '', promptImage: isStr(q.promptImage) ? q.promptImage : undefined,
@@ -223,6 +273,7 @@ export function validateBank(raw: unknown, assets: Map<string, Uint8Array>): Res
           paper: isStr(q.paper) ? q.paper : undefined,
           topic: isStr(q.topic) ? q.topic : undefined,
           difficulty: isInt(q.difficulty) ? q.difficulty : undefined,
+          ai,
         });
       }
     });
@@ -235,6 +286,9 @@ export function validateBank(raw: unknown, assets: Map<string, Uint8Array>): Res
         err(`exam.count must be an integer in [${EXAM_MIN_QUESTIONS}, ${total}]`);
       }
     }
+
+    // Raw-presence check: an invalid aiAnalysis already reported its own error.
+    if (anyAi && m.aiAnalysis === undefined) err('manifest.aiAnalysis is required when any question has "ai"');
   }
 
   if (errors.length > 0) return { ok: false, errors };
@@ -255,6 +309,7 @@ export function validateBank(raw: unknown, assets: Map<string, Uint8Array>): Res
     cover: coverManifestPath ?? undefined,
     categories,
     exam,
+    aiAnalysis,
     questions,
   };
 

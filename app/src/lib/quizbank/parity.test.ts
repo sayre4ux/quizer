@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { validateBank as appValidate } from './validate';
 import { fixtures } from './fixtures';
+import { LIMITS } from './format';
 import type { Result, ValidatedBank } from './format';
-import { validateBank as coreValidate } from '../../../../quizbank-author/scripts/lib/validate-core.mjs';
+import { LIMITS as coreLIMITS, validateBank as coreValidate } from '../../../../quizbank-author/scripts/lib/validate-core.mjs';
 
 // Anti-drift: the standalone skill validator (JS) must produce identical results to
 // the app validator (TS) — same ok/err, same errors, and on success the same
@@ -18,6 +19,11 @@ function norm(r: Result<ValidatedBank>) {
 }
 
 describe('parity: app validator ≡ skill validate-core', () => {
+  // Behaviour fixtures only probe some limits; this catches drift in all of them.
+  it('LIMITS are identical', () => {
+    expect(coreLIMITS).toEqual(LIMITS);
+  });
+
   for (const f of fixtures) {
     it(f.name, () => {
       const app = norm(appValidate(f.manifest, f.assets));

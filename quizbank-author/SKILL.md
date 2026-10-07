@@ -27,6 +27,10 @@ package the file.
    errors; only hand over a file that passes.
 5. **You are not an answer checker.** Tell the user: answers were taken from their
    source and checked only for *structure*, not verified for *truth*.
+6. **`ai` / `aiAnalysis` are never part of conversion.** The conversion workflow
+   does not write them. They are added only in a separate pass the user explicitly
+   asks for, they never change `correct`, and the ledger (`mappedCorrect`) keeps
+   reflecting the source answer.
 
 ## Workflow
 

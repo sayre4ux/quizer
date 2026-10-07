@@ -31,6 +31,10 @@ export const LIMITS = {
   minOptions: 2,
   maxOptions: 10,
   maxDifficulty: 5,
+  aiExplanationMax: 4000,
+  aiModelMax: 80,
+  aiDateMax: 40,
+  aiNoteMax: 500,
 } as const;
 
 export const BANK_ID_RE = /^[a-z0-9][a-z0-9_-]{1,63}$/;
@@ -70,6 +74,22 @@ export interface ManifestQuestion {
   paper?: string;
   topic?: string;
   difficulty?: number;
+  ai?: ManifestQuestionAi;
+}
+
+// Advisory AI second opinion on a question. Never used for grading: `correct`
+// stays the scoring key; the app computes agreement itself at runtime.
+export interface ManifestQuestionAi {
+  answer: string[];
+  explanation: string;
+  doubt?: boolean;
+}
+
+// Provenance label for the bank's AI analysis; required whenever any question has `ai`.
+export interface ManifestAiAnalysis {
+  model: string;
+  date?: string;
+  note?: string;
 }
 
 export interface ManifestCategory {
@@ -98,6 +118,7 @@ export interface QuizBankManifest {
   cover?: string;
   categories?: ManifestCategory[];
   exam?: ManifestExam;
+  aiAnalysis?: ManifestAiAnalysis;
   questions: ManifestQuestion[];
 }
 
@@ -105,15 +126,17 @@ export interface QuizBankManifest {
 export const MANIFEST_KEYS = new Set<string>([
   'format', 'formatVersion', 'id', 'title', 'module', 'language', 'description',
   'author', 'license', 'sourceUrl', 'tags', 'createdAt', 'cover', 'categories',
-  'exam', 'questions',
+  'exam', 'aiAnalysis', 'questions',
 ]);
 export const QUESTION_KEYS = new Set<string>([
   'id', 'type', 'prompt', 'promptImage', 'options', 'correct', 'explanation',
-  'category', 'paper', 'topic', 'difficulty',
+  'category', 'paper', 'topic', 'difficulty', 'ai',
 ]);
 export const OPTION_KEYS = new Set<string>(['label', 'text', 'image']);
 export const CATEGORY_KEYS = new Set<string>(['id', 'name']);
 export const EXAM_KEYS = new Set<string>(['count', 'minutes']);
+export const AI_KEYS = new Set<string>(['answer', 'explanation', 'doubt']);
+export const AI_ANALYSIS_KEYS = new Set<string>(['model', 'date', 'note']);
 
 // ---- Pipeline results ----
 

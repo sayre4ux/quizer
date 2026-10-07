@@ -1,6 +1,6 @@
 import type { ProgressStore, Question } from '../types';
 import { allQuestions } from './dataset';
-import { everWrong, isSeen, lastCorrect } from './stats';
+import { everWrong, isAnswered, isSeen, lastCorrect } from './stats';
 
 export type PoolFilter =
   | { kind: 'all' }
@@ -8,6 +8,7 @@ export type PoolFilter =
   | { kind: 'category'; value: number | null } // null = uncategorized
   | { kind: 'topic'; value: string }
   | { kind: 'unseen' }
+  | { kind: 'answered' } // answered at least once (skipped exam questions don't count)
   | { kind: 'wrong' } // most recent attempt was wrong
   | { kind: 'everWrong' } // missed at least once ever
   | { kind: 'flagged' }
@@ -34,6 +35,8 @@ function matches(q: Question, store: ProgressStore, filter: PoolFilter, now: num
       return q.topic === filter.value;
     case 'unseen':
       return !isSeen(p);
+    case 'answered':
+      return isAnswered(p);
     case 'wrong':
       return lastCorrect(p) === false;
     case 'everWrong':

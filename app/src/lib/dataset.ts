@@ -1,4 +1,4 @@
-import type { CategoryMeta, Question, RuntimeDataset } from '../types';
+import type { AiProvenance, CategoryMeta, Question, RuntimeDataset } from '../types';
 
 // The active bank's dataset, as live module bindings. They start empty and are
 // reassigned by applyDataset() once a bank is loaded from IDB at boot / switch.
@@ -11,6 +11,8 @@ export let categories: CategoryMeta[] = [];
 export let papers: string[] = [];
 export let moduleLabel = '';
 export let activeInstalledId: string | null = null;
+export let aiProvenance: AiProvenance | null = null;
+export let bankScript: RuntimeDataset['bankScript'] = null;
 
 export function applyDataset(d: RuntimeDataset | null): void {
   allQuestions = d?.questions ?? [];
@@ -19,6 +21,8 @@ export function applyDataset(d: RuntimeDataset | null): void {
   papers = d?.papers ?? [];
   moduleLabel = d?.moduleLabel ?? '';
   activeInstalledId = d?.installedId ?? null;
+  aiProvenance = d?.aiProvenance ?? null;
+  bankScript = d?.bankScript ?? null;
 }
 
 export function categoryName(id: number): string {

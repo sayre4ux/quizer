@@ -1,0 +1,100 @@
+{
+  "format": "quizbank",
+  "formatVersion": 1,
+  "id": "mixed_demo",
+  "title": "Mixed demo (English questions, Chinese explanations)",
+  "module": "MIXED-DEMO",
+  "language": "en",
+  "description": "Test data: English prompts and options with Simplified Chinese source explanations, like a CISSP bank annotated in Chinese. Not real exam questions.",
+  "createdAt": "2026-10-08",
+  "categories": [
+    { "id": 1, "name": "Security and Risk Management" },
+    { "id": 2, "name": "Communication and Network Security" }
+  ],
+  "aiAnalysis": {
+    "model": "Claude Opus 5.5",
+    "date": "2026-10",
+    "note": "Advisory only; scoring uses the source answer."
+  },
+  "questions": [
+    {
+      "id": "mixed_001",
+      "type": "single",
+      "category": 1,
+      "paper": "Set A",
+      "prompt": "Which of the following BEST describes the purpose of a security policy?",
+      "options": [
+        { "label": "A", "text": "To define management's intent for protecting information" },
+        { "label": "B", "text": "To list every technical control in use" },
+        { "label": "C", "text": "To replace the risk assessment" },
+        { "label": "D", "text": "To document firewall rules" }
+      ],
+      "correct": ["A"],
+      "explanation": "安全策略是管理层对信息安全的意图声明，这是网络安全治理的基础。",
+      "ai": {
+        "answer": ["A"],
+        "explanation": "A security policy states management intent; the other options are lower-level artifacts."
+      }
+    },
+    {
+      "id": "mixed_002",
+      "type": "single",
+      "category": 2,
+      "paper": "Set A",
+      "prompt": "Which protocol provides confidentiality for web traffic?",
+      "options": [
+        { "label": "A", "text": "HTTP" },
+        { "label": "B", "text": "TLS" },
+        { "label": "C", "text": "ICMP" },
+        { "label": "D", "text": "ARP" }
+      ],
+      "correct": ["B"],
+      "explanation": "TLS 为传输层提供加密，保护网络通信的机密性。"
+    },
+    {
+      "id": "mixed_003",
+      "type": "single",
+      "category": 1,
+      "paper": "Set B",
+      "prompt": "Who is ultimately responsible for the security of an organization's information?",
+      "options": [
+        { "label": "A", "text": "The security administrator" },
+        { "label": "B", "text": "Senior management" },
+        { "label": "C", "text": "The auditor" },
+        { "label": "D", "text": "End users" }
+      ],
+      "correct": ["B"],
+      "explanation": "高级管理层对组织的信息安全负最终责任。"
+    },
+    {
+      "id": "mixed_004",
+      "type": "single",
+      "category": 2,
+      "paper": "Set B",
+      "prompt": "Which device operates mainly at the network layer?",
+      "options": [
+        { "label": "A", "text": "Hub" },
+        { "label": "B", "text": "Switch" },
+        { "label": "C", "text": "Router" },
+        { "label": "D", "text": "Repeater" }
+      ],
+      "correct": ["C"],
+      "explanation": "路由器工作在网络层，根据 IP 地址转发数据包。"
+    },
+    {
+      "id": "mixed_005",
+      "type": "single",
+      "category": 1,
+      "paper": "Set B",
+      "prompt": "What is the main goal of software security testing?",
+      "options": [
+        { "label": "A", "text": "Find vulnerabilities before release" },
+        { "label": "B", "text": "Increase code size" },
+        { "label": "C", "text": "Replace code review" },
+        { "label": "D", "text": "Speed up deployment" }
+      ],
+      "correct": ["A"],
+      "explanation": "软件安全测试的目的是在发布前发现漏洞，这对开发过程很重要。"
+    }
+  ]
+}
