@@ -58,8 +58,12 @@ npm test && npm run lint && npm run build
   app, run tests, zip the static PWA bundle (`quizer-<tag>-static.zip`), and
   publish a GitHub Release with auto-generated notes + the bundle attached.
 
-To cut a release: bump `version` in `app/package.json`, commit, then
+To cut a release: bump `version` in `app/package.json`, add a matching entry (a
+few short lines) at the top of `app/src/changelog.ts` — a test fails if the
+running version has no entry — commit, then
 `git tag -a vX.Y.Z -m "…" && git push origin vX.Y.Z`. The workflow does the rest.
+Installed apps pick up the deploy on next foreground and show the new entry once
+in a *What's new* sheet.
 **Do not rewrite published history** (no squashing/force-push over a tagged or
 pushed commit) — tags must keep pointing at real commits and clones must not diverge.
 
@@ -75,8 +79,11 @@ pushed commit) — tags must keep pointing at real commits and clones must not d
 - **No new dependencies** without a clear reason — the app deps are intentionally
   lean.
 - **Comments** explain *why*, not *what*. Match surrounding style.
-- **Privacy.** The app makes no network calls after first load and stores
-  everything client-side. Don't add telemetry, analytics, or remote calls.
+- **Privacy.** The app stores everything client-side and only talks to its own
+  origin after first load (service-worker update checks; lazily loaded OpenCC
+  dictionaries for Chinese banks). Don't add telemetry, analytics, or remote calls.
+- **AI analysis is advisory.** `Question.ai` is display-only. Grading, stats, SRS
+  and pools always use `correct`; never read `ai` there.
 
 ## Project map
 
@@ -92,6 +99,11 @@ app/src/
     srs.ts             SM-2 spaced repetition
     stats.ts           mastery / accuracy / readiness aggregations
     pools.ts           question pool selection + seeded shuffle
+    aiStatus.ts        AI analysis vs source key (agrees / doubts / differs)
+    prefs.ts           app-wide display preferences (localStorage)
+    chineseScript.ts   简体/繁體 detection + lazy OpenCC display conversion
+    pwaUpdate.ts       SW registration + update checks; updateGate.ts decides when to reload
+    whatsNew.ts        which changelog entries to show (see src/changelog.ts)
 quizbank-author/
   scripts/             validate + pack CLIs
   references/          format spec + conversion recipes (also agent-facing)
@@ -125,6 +137,12 @@ a doc, slides, screenshots, or "make/convert/prepare a question bank"), use the
   origin will keep serving the old bundle. Dev mode does not register an SW; if
   edits seem to have "no effect," clear that origin's site data or use a private
   window.
+- **Updates wait for a safe moment.** `registerType: 'prompt'`: a new SW waits
+  until `updateGate` sees the user outside a session/exam, then activates and
+  reloads. Don't switch back to auto-activation — sessions live in memory.
+- **OpenCC chunks are runtime-cached, not precached.** `vite.config.ts` names them
+  `opencc-*` so the SW can route them (`CacheFirst`) and keep them out of the
+  install precache. Keep that prefix if you touch the chunking.
 - **Live module bindings.** `app/src/lib/dataset.ts` exports are reassigned at
   runtime by `applyDataset()`. Read them inside functions/render, not at import
   time, or you'll capture an empty initial dataset.

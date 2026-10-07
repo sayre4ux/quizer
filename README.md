@@ -30,11 +30,19 @@ mistakes. Schedule with SM-2 spaced repetition. Revisit flagged questions.
 **Analytics** &mdash; Per-category radar, per-topic mastery, weak-area detection,
 readiness tracking. Know exactly where you stand.
 
-**Offline-first** &mdash; Full PWA with service worker. Install to home screen,
-study on a plane.
+**AI second opinion** &mdash; Banks can carry an optional AI analysis per question:
+a recommended answer and a short explanation in its own section, flagged where it
+disagrees with the source key. Grading always uses the source answer.
 
-**Private by default** &mdash; Zero telemetry, zero network calls after first load.
-Your progress never leaves your device.
+**简体 / 繁體** &mdash; Chinese banks can be shown in Simplified or Traditional
+characters (character-level conversion, exam terms unchanged).
+
+**Offline-first** &mdash; Full PWA with service worker. Install to home screen,
+study on a plane. New versions install themselves, with a short *What's new* note.
+
+**Private by default** &mdash; Zero telemetry, no third-party requests. The only
+later fetches are update checks and, for Chinese banks, the app's own script
+dictionaries. Your progress never leaves your device.
 
 ---
 
@@ -119,6 +127,11 @@ packaging for you:
 Then: *"Convert my questions.csv into a Quizer bank."* The agent extracts answers
 from your source (it never invents them), validates the structure, and produces a
 `.quizbank.json`/`.quizbank.zip` you can import.
+
+Want a second opinion on the answers? The format has an optional per-question `ai`
+field (see [SCHEMA.md](quizbank-author/references/SCHEMA.md)). It is added in a
+separate step you ask for explicitly, never during conversion, and never changes
+the source answer.
 
 ### Manually (CLI)
 
