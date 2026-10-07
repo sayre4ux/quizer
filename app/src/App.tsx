@@ -282,7 +282,7 @@ export function Shell({
           </div>
         </header>
       )}
-      <main className={cx('pb-12', focus && 'pt-[max(0.75rem,env(safe-area-inset-top))]')}>{children}</main>
+      <main className={cx('pb-12', focus && 'pt-[calc(env(safe-area-inset-top)+1rem)]')}>{children}</main>
       <SaveErrorBanner />
     </div>
   );
