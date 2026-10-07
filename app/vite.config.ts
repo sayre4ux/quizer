@@ -9,7 +9,10 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 'prompt' + src/lib/pwaUpdate.ts: a new version waits until the user is
+      // outside a session, then the app reloads into it (see lib/updateGate.ts).
+      registerType: 'prompt',
+      injectRegister: false,
       // apple-touch-icon isn't a manifest icon, so include it explicitly. The
       // manifest icons (192/512/maskable) are auto-precached by the plugin, so
       // they're intentionally NOT in globPatterns below (would double-precache).

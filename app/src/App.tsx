@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { buildPool } from './lib/pools';
 import { allQuestions, categories, moduleLabel } from './lib/dataset';
 import { exitEphemeral, initActiveBank, switchBank } from './lib/activeBank';
 import { importSampleEphemeral } from './lib/importBank';
+import { justUpdated, setUpdateSafe } from './lib/updateGate';
 import { store, useActiveBank, useProgress } from './state/useStore';
 import { Button } from './components/ui';
 import { contentLang, cx } from './components/ui-utils';
@@ -34,6 +35,11 @@ export default function App() {
   const [view, setView] = useState<View>('study');
   const [showImport, setShowImport] = useState(false);
   const [showManage, setShowManage] = useState(false);
+
+  // An app update reloads the page, so hold it while a session or exam is open.
+  useEffect(() => {
+    setUpdateSafe(active === null);
+  }, [active]);
 
   if (ab.status === 'loading') {
     return (
@@ -167,6 +173,24 @@ export default function App() {
       )}
       {dialogs}
     </Shell>
+  );
+}
+
+// Brief confirmation on the first load after an app update was applied.
+export function UpdatedToast() {
+  const [show, setShow] = useState(justUpdated);
+  useEffect(() => {
+    if (!show) return;
+    const t = window.setTimeout(() => setShow(false), 3500);
+    return () => window.clearTimeout(t);
+  }, [show]);
+  if (!show) return null;
+  return (
+    <div role="status" className="pointer-events-none fixed inset-x-0 top-0 z-40 flex justify-center px-4 pt-[max(0.75rem,env(safe-area-inset-top))]">
+      <div className="rounded-full border border-line bg-surface px-4 py-2 text-xs font-medium text-fg shadow-pop">
+        Updated to the latest version
+      </div>
+    </div>
   );
 }
 
