@@ -7,6 +7,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.3.0',
+    items: [
+      'New “Recent wrong” list on the Study page: what you got wrong each day over the last 14 days, with a Redo for any day.',
+      'Skipped exam questions don’t count as wrong there — only answers you actually picked.',
+      'Phone layout: steadier spacing under the status bar.',
+    ],
+  },
+  {
     version: '0.2.0',
     items: [
       'AI analysis under every answer — a second opinion, flagged where it disagrees with the source key.',
