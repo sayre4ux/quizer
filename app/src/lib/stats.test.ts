@@ -1,9 +1,10 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { applyDataset } from './dataset';
-import type { Question, ProgressStore, QuestionProgress } from '../types';
+import type { Attempt, Question, ProgressStore, QuestionProgress } from '../types';
 import {
   overall, learningMix, readiness, statusOf, byCategory, byTopic,
   mostFailedTopics, isSeen, lastCorrect, everWrong, MASTERED_INTERVAL_DAYS,
+  dayStart, isMiss, missedBetween, recentMistakes, recentWindow,
 } from './stats';
 
 function makeQuestion(id: string, opts: Partial<Question> = {}): Question {
@@ -250,5 +251,117 @@ describe('mostFailedTopics', () => {
     };
     const failed = mostFailedTopics(s);
     expect(failed.find((t) => t.label === 'Auth')).toBeUndefined();
+  });
+});
+
+describe('recent mistakes', () => {
+  // Local-time fixtures: 3pm on 12 Oct 2026, and "n days ago at `hour`".
+  const NOW = new Date(2026, 9, 12, 15, 0).getTime();
+  const at = (daysAgo: number, hour = 10) => new Date(2026, 9, 12 - daysAgo, hour, 0).getTime();
+  const ans = (t: number, correct: boolean, mode: Attempt['mode'] = 'drill'): Attempt =>
+    ({ t, choice: [correct ? 'A' : 'B'], correct, mode });
+  const skip = (t: number): Attempt => ({ t, choice: [], correct: false, mode: 'exam' });
+  const storeOf = (byId: Record<string, Attempt[]>): ProgressStore => ({
+    questions: Object.fromEntries(
+      Object.entries(byId).map(([id, attempts]) => [`bank:${id}`, { attempts, flagged: false, srs: null }]),
+    ),
+    settings: { examCount: 5, examMinutes: 10 },
+  });
+
+  it('dayStart is local midnight and steps across a month boundary', () => {
+    expect(dayStart(NOW)).toBe(new Date(2026, 9, 12).getTime());
+    expect(dayStart(NOW, 1)).toBe(new Date(2026, 9, 13).getTime());
+    expect(dayStart(NOW, -12)).toBe(new Date(2026, 8, 30).getTime());
+  });
+
+  it('recentWindow spans the oldest day through the end of today', () => {
+    expect(recentWindow(14, NOW)).toEqual({
+      from: new Date(2026, 8, 29).getTime(),
+      to: new Date(2026, 9, 13).getTime(),
+    });
+  });
+
+  it('isMiss ignores skipped (empty) attempts', () => {
+    expect(isMiss(ans(at(0), false))).toBe(true);
+    expect(isMiss(ans(at(0), true))).toBe(false);
+    expect(isMiss(skip(at(0)))).toBe(false);
+  });
+
+  it('missedBetween is half-open on [from, to)', () => {
+    const from = dayStart(NOW, -1);
+    const to = dayStart(NOW);
+    const p = (t: number): QuestionProgress => ({ attempts: [ans(t, false)], flagged: false, srs: null });
+    expect(missedBetween(p(from), from, to)).toBe(true);
+    expect(missedBetween(p(to - 1), from, to)).toBe(true);
+    expect(missedBetween(p(to), from, to)).toBe(false);
+    expect(missedBetween(p(from - 1), from, to)).toBe(false);
+    expect(missedBetween(undefined, from, to)).toBe(false);
+  });
+
+  it('counts distinct questions per day, newest first', () => {
+    const s = storeOf({
+      '1': [ans(at(0, 9), false), ans(at(0, 11), false)], // missed twice today → one question
+      '2': [ans(at(0), true)],
+      '3': [ans(at(1), false)],
+      '4': [ans(at(1, 23), false)],
+    });
+    const { days, hasEarlier } = recentMistakes(s, 14, NOW);
+    expect(hasEarlier).toBe(false);
+    expect(days.map((d) => [d.answered, d.wrong])).toEqual([[2, 1], [2, 2]]);
+    expect(days[0]).toMatchObject({ daysAgo: 0, from: dayStart(NOW), to: dayStart(NOW, 1) });
+    expect(days[1]).toMatchObject({ daysAgo: 1, from: dayStart(NOW, -1), to: dayStart(NOW) });
+  });
+
+  it('does not count skipped exam questions as answered or wrong', () => {
+    const s = storeOf({ '1': [skip(at(0))], '2': [ans(at(0), false, 'exam')] });
+    const { days } = recentMistakes(s, 14, NOW);
+    expect(days).toHaveLength(1);
+    expect(days[0]).toMatchObject({ answered: 1, wrong: 1, fixed: 0 });
+  });
+
+  it('keeps a later-corrected question under the day it was missed, counted as fixed', () => {
+    const s = storeOf({
+      '1': [ans(at(2), false), ans(at(0), true)],
+      '2': [ans(at(2), false)],
+      '3': [ans(at(2), false), ans(at(1), true), skip(at(0))], // a later skip does not undo the fix
+    });
+    const { days } = recentMistakes(s, 14, NOW);
+    expect(days.map((d) => d.daysAgo)).toEqual([0, 1, 2]);
+    expect(days[2]).toMatchObject({ answered: 3, wrong: 3, fixed: 2 });
+    expect(days[0]).toMatchObject({ answered: 1, wrong: 0, fixed: 0 });
+  });
+
+  it('leaves out days without practice', () => {
+    const s = storeOf({ '1': [ans(at(3), false)], '2': [ans(at(0), true)], '3': [skip(at(1))] });
+    const { days } = recentMistakes(s, 14, NOW);
+    expect(days.map((d) => [d.daysAgo, d.answered])).toEqual([[0, 1], [3, 1]]);
+  });
+
+  it('returns no days when nothing was ever answered', () => {
+    expect(recentMistakes(storeOf({}), 14, NOW)).toEqual({ days: [], hasEarlier: false });
+    expect(recentMistakes(storeOf({ '1': [skip(at(0))] }), 14, NOW).days).toEqual([]);
+  });
+
+  it('flags history older than the window; widening brings it in', () => {
+    const s = storeOf({ '1': [ans(at(20), false)], '2': [ans(at(0), false)] });
+    const r = recentMistakes(s, 14, NOW);
+    expect(r.hasEarlier).toBe(true);
+    expect(r.days.map((d) => d.daysAgo)).toEqual([0]);
+    const wide = recentMistakes(s, 28, NOW);
+    expect(wide.hasEarlier).toBe(false);
+    expect(wide.days.map((d) => d.daysAgo)).toEqual([0, 20]);
+    expect(wide.days[1]).toMatchObject({ answered: 1, wrong: 1 });
+  });
+
+  it('reports earlier history even when the window itself is empty', () => {
+    const s = storeOf({ '1': [ans(at(30), false)] });
+    expect(recentMistakes(s, 14, NOW)).toEqual({ days: [], hasEarlier: true });
+  });
+
+  it('ignores attempts dated after today', () => {
+    const s = storeOf({ '1': [ans(at(-2), false)], '2': [ans(at(0), true)] });
+    const { days } = recentMistakes(s, 14, NOW);
+    expect(days).toHaveLength(1);
+    expect(days[0]).toMatchObject({ answered: 1, wrong: 0 });
   });
 });

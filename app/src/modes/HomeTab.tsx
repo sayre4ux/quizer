@@ -4,9 +4,11 @@ import { contentLang, cx, pct } from '../components/ui-utils';
 import { useScriptConverter } from '../lib/chineseScript';
 import { categories } from '../lib/dataset';
 import { poolCount } from '../lib/pools';
-import { overall } from '../lib/stats';
+import type { PoolFilter } from '../lib/pools';
+import { overall, recentMistakes, recentWindow, RECENT_DAYS } from '../lib/stats';
+import type { DayMistakes } from '../lib/stats';
 import { store, useProgress } from '../state/useStore';
-import type { CategoryMeta } from '../types';
+import type { CategoryMeta, ProgressStore } from '../types';
 import type { StartCfg } from './AnalysisTab';
 
 interface Props {
@@ -50,6 +52,74 @@ function ModeCard({
       </div>
       <span className={cx('text-[13px] leading-snug', primary ? 'text-onprimary/75' : 'text-muted')}>{desc}</span>
     </button>
+  );
+}
+
+// DECISION: dates use a fixed English format to match the rest of the (English) UI.
+const DAY_FORMAT = new Intl.DateTimeFormat('en', { weekday: 'short', month: 'short', day: 'numeric' });
+
+function dayLabel(d: DayMistakes): string {
+  if (d.daysAgo === 0) return 'Today';
+  if (d.daysAgo === 1) return 'Yesterday';
+  return DAY_FORMAT.format(d.from);
+}
+
+function daySummary(d: DayMistakes): string {
+  if (d.wrong === 0) return `${d.answered} answered · none wrong`;
+  const fixed = d.fixed > 0 ? ` · ${d.fixed} fixed since` : '';
+  return `${d.answered} answered · ${d.wrong} wrong${fixed}`;
+}
+
+// Day-by-day wrong answers; days without practice are skipped. A question stays
+// under the day it was missed even after a later correct answer, so "Redo"
+// always replays that day's full set.
+function RecentWrong({ progress, start }: { progress: ProgressStore; start: (cfg: StartCfg) => void }) {
+  const [span, setSpan] = useState(RECENT_DAYS);
+  const { days, hasEarlier } = recentMistakes(progress, span);
+  if (days.length === 0 && !hasEarlier) return null;
+
+  return (
+    <>
+      <h2 className="mt-10 mb-3 text-xs font-semibold uppercase tracking-[0.08em] text-faint">Recent wrong</h2>
+      {days.length === 0 ? (
+        <p className="text-sm text-faint">No practice in the last {span} days.</p>
+      ) : (
+        <Card className="divide-y divide-line overflow-hidden">
+          {days.map((d) => {
+            const label = dayLabel(d);
+            return (
+              <div key={d.from} className="flex min-h-14 items-center gap-3 px-4 py-2.5">
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium text-fg">{label}</div>
+                  <div className="tnum truncate text-xs text-faint">{daySummary(d)}</div>
+                </div>
+                {d.wrong > 0 && (
+                  <Button
+                    variant="secondary"
+                    className="px-3 py-1.5 text-xs"
+                    aria-label={`Redo wrong answers from ${label}`}
+                    onClick={() =>
+                      start({
+                        title: `Wrong · ${label}`,
+                        filter: { kind: 'missedBetween', from: d.from, to: d.to },
+                        mode: 'review',
+                      })
+                    }
+                  >
+                    Redo
+                  </Button>
+                )}
+              </div>
+            );
+          })}
+        </Card>
+      )}
+      {hasEarlier && (
+        <Button variant="ghost" className="mt-2 text-xs" onClick={() => setSpan((s) => s + RECENT_DAYS)}>
+          Show earlier
+        </Button>
+      )}
+    </>
   );
 }
 
@@ -120,6 +190,8 @@ export function HomeTab({ start, startExam }: Props) {
   const unseen = poolCount(progress, { kind: 'unseen' });
   const answered = poolCount(progress, { kind: 'answered' });
   const wrong = poolCount(progress, { kind: 'everWrong' });
+  const recentFilter: PoolFilter = { kind: 'missedBetween', ...recentWindow() };
+  const recent = poolCount(progress, recentFilter);
   const due = o.due;
   const flagged = o.flagged;
 
@@ -164,6 +236,13 @@ export function HomeTab({ start, startExam }: Props) {
           disabled={wrong === 0}
         />
         <ModeCard
+          title="Recent wrong"
+          desc={`Answered wrong in the last ${RECENT_DAYS} days`}
+          count={recent}
+          onClick={() => start({ title: 'Recent wrong', filter: recentFilter, mode: 'review' })}
+          disabled={recent === 0}
+        />
+        <ModeCard
           title="Answered before"
           desc="Drill the questions you've already answered"
           count={answered}
@@ -191,6 +270,8 @@ export function HomeTab({ start, startExam }: Props) {
           onClick={() => start({ title: 'All questions', filter: { kind: 'all' } })}
         />
       </div>
+
+      <RecentWrong progress={progress} start={start} />
 
       {categories.length > 0 && (
         <>

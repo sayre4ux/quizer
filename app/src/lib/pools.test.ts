@@ -157,6 +157,31 @@ describe('buildPool filters', () => {
   });
 });
 
+describe('missedBetween filter', () => {
+  const settings = { examCount: 5, examMinutes: 10 };
+  const prog = (attempts: QuestionProgress['attempts']): QuestionProgress => ({ attempts, flagged: false, srs: null });
+
+  it('matches only questions answered wrong inside the range', () => {
+    const store: ProgressStore = {
+      settings,
+      questions: {
+        'bank:1': prog([{ t: 150, choice: ['B'], correct: false, mode: 'drill' }]),
+        'bank:2': prog([{ t: 150, choice: ['A'], correct: true, mode: 'drill' }]),
+        'bank:3': prog([{ t: 150, choice: [], correct: false, mode: 'exam' }]), // skipped
+        'bank:4': prog([{ t: 250, choice: ['B'], correct: false, mode: 'drill' }]), // outside
+        // missed in range, corrected later: still belongs to the range
+        'bank:5': prog([
+          { t: 199, choice: ['B'], correct: false, mode: 'exam' },
+          { t: 300, choice: ['A'], correct: true, mode: 'review' },
+        ]),
+      },
+    };
+    const filter = { kind: 'missedBetween', from: 100, to: 200 } as const;
+    expect(buildPool(store, { filter }).map((q) => q.localId)).toEqual(['1', '5']);
+    expect(poolCount(store, filter)).toBe(2);
+  });
+});
+
 describe('AND filter', () => {
   it('combines two filters with AND logic', () => {
     const store = withProgress(['bank:1'], false);

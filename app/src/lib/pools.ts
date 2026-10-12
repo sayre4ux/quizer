@@ -1,6 +1,6 @@
 import type { ProgressStore, Question } from '../types';
 import { allQuestions } from './dataset';
-import { everWrong, isAnswered, isSeen, lastCorrect } from './stats';
+import { everWrong, isAnswered, isSeen, lastCorrect, missedBetween } from './stats';
 
 export type PoolFilter =
   | { kind: 'all' }
@@ -11,6 +11,7 @@ export type PoolFilter =
   | { kind: 'answered' } // answered at least once (skipped exam questions don't count)
   | { kind: 'wrong' } // most recent attempt was wrong
   | { kind: 'everWrong' } // missed at least once ever
+  | { kind: 'missedBetween'; from: number; to: number } // answered wrong within [from, to); skips don't count
   | { kind: 'flagged' }
   | { kind: 'due' }; // SRS due now
 
@@ -41,6 +42,8 @@ function matches(q: Question, store: ProgressStore, filter: PoolFilter, now: num
       return lastCorrect(p) === false;
     case 'everWrong':
       return everWrong(p);
+    case 'missedBetween':
+      return missedBetween(p, filter.from, filter.to);
     case 'flagged':
       return !!p?.flagged;
     case 'due':
